@@ -1,0 +1,6 @@
+.env
+/node_modules
+/video_chunks
+/video.mp4
+
+/build
