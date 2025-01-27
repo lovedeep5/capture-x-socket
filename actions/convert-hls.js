@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
 
+const ffmpegPath = path.join(__dirname, "..", "tools/ffmpeg");
 async function convertToHLS(inputFilePath, outputDir) {
   const hlsOutputDir = path.join(outputDir, "hls");
 
@@ -9,7 +10,7 @@ async function convertToHLS(inputFilePath, outputDir) {
     fs.mkdirSync(hlsOutputDir, { recursive: true });
   }
 
-  const ffmpegCommand = `ffmpeg -i "${inputFilePath}" -c:v libx264 -c:a aac -f hls -hls_time 10 -hls_list_size 0 -hls_segment_filename "${hlsOutputDir}/segment_%03d.ts" "${hlsOutputDir}/playlist.m3u8"`;
+  const ffmpegCommand = `${ffmpegPath} -i "${inputFilePath}" -c:v libx264 -c:a aac -f hls -hls_time 10 -hls_list_size 0 -hls_segment_filename "${hlsOutputDir}/segment_%03d.ts" "${hlsOutputDir}/playlist.m3u8"`;
 
   return new Promise((resolve, reject) => {
     exec(ffmpegCommand, (err) => {
