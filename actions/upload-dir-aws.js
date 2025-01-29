@@ -7,13 +7,15 @@ require("dotenv").config();
 const { AWS_MASTER_PATH, VIDEO_CHUNKS_PATH } = require("../constants");
 
 const uploadDirAws = async (userPath) => {
-  const folderPath = path.join(VIDEO_CHUNKS_PATH, userPath, "hls");
-  const files = fs.readdirSync(folderPath);
+  const mainFolderPath = path.join(VIDEO_CHUNKS_PATH, userPath);
+  const hlsFolderPath = path.join(mainFolderPath, "hls");
 
-  const uploadPromises = files.map(async (file) => {
-    const filePath = path.join(folderPath, file);
+  const allFiles = getAllFiles(mainFolderPath); // Get all files recursively
+
+  const uploadPromises = allFiles.map(async (filePath) => {
+    const relativePath = path.relative(mainFolderPath, filePath); // Maintain directory structure
     const fileStream = fs.createReadStream(filePath);
-    const key = `${AWS_MASTER_PATH}/${userPath}/${file}`; // Ensure proper S3 key formatting
+    const key = `${AWS_MASTER_PATH}/${userPath}/${relativePath}`;
 
     try {
       const upload = new Upload({
@@ -22,7 +24,7 @@ const uploadDirAws = async (userPath) => {
           Bucket: BUCKET,
           Key: key,
           Body: fileStream,
-          ContentType: getContentType(file), // Set correct MIME type
+          ContentType: getContentType(filePath),
         },
       });
 
@@ -37,6 +39,27 @@ const uploadDirAws = async (userPath) => {
   console.log("🎉 All files uploaded successfully!");
 };
 
+// Helper function to get all files recursively
+function getAllFiles(folderPath) {
+  let filesList = [];
+
+  if (!fs.existsSync(folderPath)) return filesList;
+
+  const items = fs.readdirSync(folderPath);
+
+  items.forEach((item) => {
+    const fullPath = path.join(folderPath, item);
+    if (fs.statSync(fullPath).isDirectory()) {
+      filesList = filesList.concat(getAllFiles(fullPath)); // Recursive call for subdirectories
+    } else {
+      filesList.push(fullPath);
+    }
+  });
+
+  return filesList;
+}
+
+// Determine correct content type for S3
 function getContentType(fileName) {
   if (fileName.endsWith(".m3u8")) return "application/vnd.apple.mpegurl";
   if (fileName.endsWith(".ts")) return "video/mp2t";
