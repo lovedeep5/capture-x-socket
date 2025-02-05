@@ -8,7 +8,6 @@ const { AWS_MASTER_PATH, VIDEO_CHUNKS_PATH } = require("../constants");
 
 const uploadDirAws = async (userPath) => {
   const mainFolderPath = path.join(VIDEO_CHUNKS_PATH, userPath);
-  const hlsFolderPath = path.join(mainFolderPath, "hls");
 
   const allFiles = getAllFiles(mainFolderPath); // Get all files recursively
 
@@ -63,6 +62,7 @@ function getAllFiles(folderPath) {
 function getContentType(fileName) {
   if (fileName.endsWith(".m3u8")) return "application/vnd.apple.mpegurl";
   if (fileName.endsWith(".ts")) return "video/mp2t";
+  if (fileName.endsWith(".webm")) return "video/webm";
   return "application/octet-stream";
 }
 

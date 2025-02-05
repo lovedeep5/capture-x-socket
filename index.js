@@ -29,6 +29,7 @@ server.on("connection", async (socket, req) => {
 
   const clientChunksDir = path.join(videoChunksDir, clientId);
   const chunkFilePath = path.join(clientChunksDir, "video.webm");
+
   const writeStream = fs.createWriteStream(chunkFilePath, { flags: "a" });
   fs.mkdirSync(clientChunksDir, { recursive: true });
 
@@ -58,7 +59,7 @@ server.on("connection", async (socket, req) => {
 
     writeStream.end(async () => {
       addJob({ chunkFilePath, clientChunksDir, clientId, user: auth });
-      const key = `${AWS_MASTER_PATH}/${clientId}/playlist.m3u8`;
+      const key = `${AWS_MASTER_PATH}/${clientId}/video.webm`;
       await insertRecording(auth?.user_id, key, clientId);
 
       setTimeout(() => {
